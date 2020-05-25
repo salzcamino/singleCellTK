@@ -1632,7 +1632,7 @@ shinyServer(function(input, output, session) {
 
 
   #-+-+-+-+-+-For Input Observe##############
-  observe({
+  observeEvent(input$shinyPanelCellViewer, {
     # is there an error or not
     if (is.null(vals$counts)) {
       # shinyalert::shinyalert("Error!", "Upload data first.", type = "error")
@@ -1752,7 +1752,7 @@ shinyServer(function(input, output, session) {
 
   #-+-+-+-+-+-Observe Group by###################################################
   ###Observe Radio Button Select Value Type
-  observe({
+  observeEvent(input$adjustgroupby, {
     if (!is.null(vals$counts)){
       if (input$adjustgroupby !=  'None'){
         #Integer,level>25#
@@ -1787,7 +1787,7 @@ shinyServer(function(input, output, session) {
 
   ###Observe Check Box Check Binning & Text Input Number of Bins:
 
-  observe({
+  observeEvent(input$checkColorBinning, {
     if (!is.null(vals$counts)){
       if (input$adjustgroupby !=  'None'){
         #Integer,level>25#
@@ -1826,7 +1826,7 @@ shinyServer(function(input, output, session) {
 
   #-+-+-+-+-+-Observe Color by###################################################
   ###Observe Radio Button Select Value Type
-  observe({
+  observeEvent(input$TypeSelect_Colorby{
     if (!is.null(vals$counts)){
       if (input$TypeSelect_Colorby != 'Pick a Color'){
         ###If Cell Annotation###############################################################
@@ -1907,7 +1907,7 @@ shinyServer(function(input, output, session) {
   })###observe_end
 
   ###Observe Check Box Check Binning & Text Input Number of Bins:
-  observe({
+  observeEvent(input$checkColorBinning, {
     if (!is.null(vals$counts)){
       ###If Cell Annotation###############################################################
       if(input$TypeSelect_Colorby != 'Pick a Color'){
