@@ -508,7 +508,7 @@ plotSCEDimReduceColData <- function(inSCE,
 #' @examples
 #' data("mouseBrainSubsetSCE")
 #' plotSCEDimReduceFeatures(
-#'   inSCE = mouseBrainSubsetSCE, feature = "Apoe",
+#'   inSCE = mouseBrainSubsetSCE, features = "Apoe",
 #'   shape = NULL, reducedDimName = "TSNE_counts",
 #'   useAssay = "counts", xlab = "tSNE1", ylab = "tSNE2"
 #' )
