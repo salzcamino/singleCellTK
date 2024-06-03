@@ -6,7 +6,7 @@
 \usage{
 plotSCEDimReduceFeatures(
   inSCE,
-  feature,
+  features,
   reducedDimName,
   sample = NULL,
   featureLocation = NULL,
@@ -41,7 +41,7 @@ plotSCEDimReduceFeatures(
 \item{inSCE}{Input \linkS4class{SingleCellExperiment} object with saved
 dimension reduction components or a variable with saved results. Required.}
 
-\item{feature}{Name of feature stored in assay of SingleCellExperiment
+\item{features}{Name of feature stored in assay of SingleCellExperiment
 object.}
 
 \item{reducedDimName}{saved dimension reduction name in the
@@ -127,7 +127,7 @@ Plot results of reduced dimensions data and
 \examples{
 data("mouseBrainSubsetSCE")
 plotSCEDimReduceFeatures(
-  inSCE = mouseBrainSubsetSCE, feature = "Apoe",
+  inSCE = mouseBrainSubsetSCE, features = "Apoe",
   shape = NULL, reducedDimName = "TSNE_counts",
   useAssay = "counts", xlab = "tSNE1", ylab = "tSNE2"
 )
