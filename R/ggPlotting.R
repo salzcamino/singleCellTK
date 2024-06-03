@@ -460,7 +460,7 @@ plotSCEDimReduceColData <- function(inSCE,
 #' @param reducedDimName saved dimension reduction name in the
 #' \linkS4class{SingleCellExperiment} object. Required.
 #' @param sample Character vector. Indicates which sample each cell belongs to.
-#' @param feature Name of feature stored in assay of SingleCellExperiment
+#' @param features Name of feature stored in assay of SingleCellExperiment
 #'  object.
 #' @param featureLocation Indicates which column name of rowData to query gene.
 #' @param featureDisplay Indicates which column name of rowData to use
@@ -514,7 +514,7 @@ plotSCEDimReduceColData <- function(inSCE,
 #' )
 #' @export
 plotSCEDimReduceFeatures <- function(inSCE,
-                                     feature,
+                                     features,
                                      reducedDimName,
                                      sample = NULL,
                                      featureLocation = NULL,
@@ -559,18 +559,19 @@ plotSCEDimReduceFeatures <- function(inSCE,
   mat <- getBiomarker(
     inSCE = inSCE,
     useAssay = useAssay,
-    gene = feature,
+    gene = features,
     binary = "Continuous",
     featureLocation = featureLocation,
     featureDisplay = featureDisplay
   )
+  
   counts <- mat[, 2]
   
   if(!is.null(featureDisplay)){
     title = utils::tail(colnames(mat),1)
   }
   
-  g <- .ggScatter(
+  plots <- .ggScatter(
     inSCE = inSCE,
     sample = sample,
     conditionClass = "numeric",
@@ -601,7 +602,48 @@ plotSCEDimReduceFeatures <- function(inSCE,
     plotLabels = plotLabels
   )
   
-  return(g)
+  if (length(features) > 1){
+    for (i in 2:length(features)){
+      counts <- mat[, i + 1]
+      
+      if(!is.null(featureDisplay)){
+        title = utils::tail(colnames(mat),1)
+      }
+      
+      g <- .ggScatter(
+        inSCE = inSCE,
+        sample = sample,
+        conditionClass = "numeric",
+        colorBy = counts,
+        shape = shape,
+        transparency = 1,
+        colorLow = colorLow,
+        colorMid = colorMid,
+        colorHigh = colorHigh,
+        reducedDimName = reducedDimName,
+        xlab = xlab,
+        ylab = ylab,
+        axisSize = axisSize,
+        axisLabelSize = axisLabelSize,
+        dim1 = dim1,
+        dim2 = dim2,
+        bin = bin,
+        binLabel = binLabel,
+        defaultTheme = defaultTheme,
+        dotSize = dotSize,
+        title = title,
+        titleSize = titleSize,
+        legendTitle = legendTitle,
+        legendTitleSize = legendTitleSize,
+        legendSize = legendSize,
+        groupBy = groupBy,
+        combinePlot = combinePlot,
+        plotLabels = plotLabels
+      )
+      plots <- plots + g
+    }
+  }
+  return(plots)
 }
 
 #' @title Dimension reduction plot tool for all types of data
