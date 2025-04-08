@@ -4,6 +4,9 @@ library(ggplot2)
 context("Testing seurat functions")
 data(scExample, package = "singleCellTK")
 
+# allow some additional memory over default
+options(future.globals.maxSize = 786432000)
+
 test_that(desc = "Testing standard seurat workflow", {
   # Test Normalization Method
   sce <- runSeuratNormalizeData(sce)
@@ -55,7 +58,7 @@ test_that(desc = "Testing standard seurat workflow", {
   
   # Test ElbowPlot on PCA
   elbowPlot <- plotSeuratElbow(sce)
-  testthat::expect_true(inherits(elbowPlot, "plotly"))
+  testthat::expect_true(is.ggplot(elbowPlot))
   
   # Test Heatmap on PCA
   heatmapPlot <- runSeuratHeatmap(sce, useAssay = "seuratScaledData", dims = 4, fast = FALSE)

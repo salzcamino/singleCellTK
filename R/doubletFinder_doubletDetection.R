@@ -244,7 +244,7 @@
 }
 
 .runDoubletFinder <- function(counts, seuratPcs, seuratRes, formationRate,
-                              seuratNfeatures, verbose = FALSE,
+                              seuratNfeatures, sct = FALSE, verbose = FALSE,
                               nCores = NULL, seed = 12345) {
   
   ## Convert to sparse matrix if not already in that format
@@ -285,7 +285,7 @@
   )
   invisible(sweepResListSeurat <- .paramSweep(seurat,
                                               PCs = seuratPcs,
-                                              sct = FALSE,
+                                              sct = sct,
                                               num.cores = nCores,
                                               verbose = verbose,
                                               seed = seed
@@ -306,7 +306,7 @@
                               pK = pkOptimal,
                               nExp = nExpPoi,
                               reuse.pANN = FALSE,
-                              sct = FALSE,
+                              sct = sct,
                               verbose = FALSE
   )
   names(seurat@meta.data)[6] <- "doubletFinderAnnScore"
@@ -331,6 +331,7 @@
 #' @param seuratRes Numeric vector. The resolution parameter used in Seurat,
 #' which adjusts the number of clusters determined via the algorithm. Default 
 #' \code{1.5}.
+#' @param sct Whether or not to use SCT. Default \code{FALSE}.
 #' @param formationRate Doublet formation rate used within algorithm. Default 
 #' \code{0.075}.
 #' @param nCores Number of cores used for running the function. Default 
@@ -342,6 +343,7 @@
 #' @seealso \code{\link{runCellQC}}, \code{\link{plotDoubletFinderResults}}
 #' @examples
 #' data(scExample, package = "singleCellTK")
+#' options(future.globals.maxSize = 786432000)
 #' sce <- subsetSCECols(sce, colData = "type != 'EmptyDroplet'")
 #' sce <- runDoubletFinder(sce)
 #' @export
@@ -354,6 +356,7 @@ runDoubletFinder <- function(inSCE,
                              seuratNfeatures = 2000,
                              seuratPcs = seq(15),
                              seuratRes = 1.5,
+                             sct = FALSE,
                              formationRate = 0.075,
                              nCores = NULL,
                              verbose = FALSE) {
@@ -404,6 +407,7 @@ runDoubletFinder <- function(inSCE,
           seuratRes = res,
           seuratNfeatures = seuratNfeatures,
           formationRate = formationRate,
+          sct = sct,
           nCores = nCores,
           verbose = verbose,
           seed = seed

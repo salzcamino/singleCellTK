@@ -15,6 +15,8 @@ plotSCEHeatmap(
   trim = c(-2, 2),
   featureIndexBy = "rownames",
   cellIndexBy = "rownames",
+  cluster_columns = FALSE,
+  cluster_rows = FALSE,
   rowDataName = NULL,
   colDataName = NULL,
   aggregateRow = NULL,
@@ -24,6 +26,8 @@ plotSCEHeatmap(
   featureAnnotationColor = NULL,
   cellAnnotationColor = NULL,
   palette = c("ggplot", "celda", "random"),
+  heatmapPalette = c("sequential", "diverging"),
+  addCellSummary = NULL,
   rowSplitBy = NULL,
   colSplitBy = NULL,
   rowLabel = FALSE,
@@ -63,8 +67,8 @@ another feature list indicated by \code{featureIndexBy}. Default \code{NULL}.}
 (cells). Alternatively, it can be a vector identifying cells in another
 cell list indicated by \code{featureIndexBy}. Default \code{NULL}.}
 
-\item{scale}{Whether to perform z-score scaling on each row. Default
-\code{TRUE}.}
+\item{scale}{Whether to perform z-score or min-max scaling on each row.Choose from \code{"zscore"}, \code{"min-max"} or default
+\code{TRUE} or \code{FALSE}}
 
 \item{trim}{A 2-element numeric vector. Values outside of this range will be
 trimmed to their nearst bound. Default \code{c(-2, 2)}}
@@ -77,6 +81,13 @@ where we search for the non-rowname feature indices. Not applicable for
 \item{cellIndexBy}{A single character specifying a column name of
 \code{colData(inSCE)}, or a vector of the same length as \code{ncol(inSCE)},
 where we search for the non-rowname cell indices. Default \code{"rownames"}.}
+
+\item{cluster_columns}{A logical scalar that turns on/off 
+clustering of columns. Default \code{FALSE}. Clustering columns should be turned off when using reduced dim 
+for plotting as it will be sorted by PCs}
+
+\item{cluster_rows}{A logical scalar that turns on/off clustering of rows. 
+Default \code{FALSE}.}
 
 \item{rowDataName}{character. The column name(s) in \code{rowData} that need
 to be added to the annotation. Not applicable for
@@ -113,6 +124,12 @@ named with categories. Default \code{NULL}.}
 
 \item{palette}{Choose from \code{"ggplot"}, \code{"celda"} or \code{"random"}
 to generate unique category colors.}
+
+\item{heatmapPalette}{Choose from \code{"sequential"}, \code{"diverging"} or supply custom palette with colorScheme
+to generate unique category colors. Default is \code{"sequential"}}
+
+\item{addCellSummary}{Add summary barplots to column annotation. Supply the name of the column in colData as a character. This option will add summary for categorical variables 
+as stacked barplots.}
 
 \item{rowSplitBy}{character. Do semi-heatmap based on the grouping of
 this(these) annotation(s). Should exist in either \code{rowDataName} or
