@@ -2149,10 +2149,6 @@ plotSeuratGenes <- function(inSCE,
         }
     }
 
-    #else if(is.null(groupVariable) && plotType %in% c("dot", "ridge", "heatmap", "")){
-
-    #}
-
     if (!is.null(splitBy)) {
         seuratObject[[splitBy]] <- colData(inSCE)[[splitBy]]
     }
