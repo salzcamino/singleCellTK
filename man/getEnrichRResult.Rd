@@ -32,7 +32,7 @@ Get or Set EnrichR Result
 \examples{
 data("mouseBrainSubsetSCE")
 if (Biobase::testBioCConnection()) {
-  mouseBrainSubsetSCE <- runEnrichR(mouseBrainSubsetSCE, features = "Cmtm5", 
+  mouseBrainSubsetSCE <- runEnrichR(mouseBrainSubsetSCE, features = "Cmtm5",
                                     db = "GO_Cellular_Component_2017",
                                     analysisName = "analysis1")
   result <- getEnrichRResult(mouseBrainSubsetSCE, "analysis1")
