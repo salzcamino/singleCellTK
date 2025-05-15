@@ -2127,12 +2127,17 @@ plotSeuratGenes <- function(inSCE,
                             cols = c("lightgrey", "blue"),
                             ncol = 1,
                             combine = FALSE) {
+    if(!plotType %in% c("dot", "feature", "ridge", "heatmap", "violin")) {
+        stop("plotType must be one of the following: ridge, violin, feature, dot and heatmap.")
+    }
+
     #setup seurat object and the corresponding groups
     seuratObject <- convertSCEToSeurat(inSCE, normAssay = useAssay, copyReducedDim = TRUE)
     seurat.version <- .getSeuratObjectMajorVersion(seuratObject)
 
     seuratObject <-
         Seurat::ScaleData(seuratObject, features = features)
+
     indices <- list()
     cells <- list()
     if(!is.null(groupVariable)){
