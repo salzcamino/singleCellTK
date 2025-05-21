@@ -2127,9 +2127,7 @@ plotSeuratGenes <- function(inSCE,
                             cols = c("lightgrey", "blue"),
                             ncol = 1,
                             combine = FALSE) {
-    if(!plotType %in% c("dot", "feature", "ridge", "heatmap", "violin")) {
-        stop("plotType must be one of the following: ridge, violin, feature, dot and heatmap.")
-    }
+    plotType <- match.arg(plotType, c("dot", "feature", "ridge", "heatmap", "violin"))
 
     #setup seurat object and the corresponding groups
     seuratObject <- convertSCEToSeurat(inSCE, normAssay = useAssay, copyReducedDim = TRUE)
