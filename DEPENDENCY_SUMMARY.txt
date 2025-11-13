@@ -1,0 +1,112 @@
+================================================================================
+SINGLECELLK DEPENDENCY ANALYSIS - QUICK REFERENCE
+================================================================================
+
+DEPENDENCY DISTRIBUTION
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Core Dependencies (5+ files):        19 packages                            │
+│ Specific Dependencies (1-4 files):   59 packages                            │
+│ ─────────────────────────────────────────────────────────────────────────  │
+│ Current Imports:                     84 packages                            │
+│ Current Suggests:                    15 packages                            │
+│ ─────────────────────────────────────────────────────────────────────────  │
+│ RECOMMENDED: Move ~40 packages to Suggests (especially single-use methods)  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+CORE INFRASTRUCTURE (Must Stay in Imports)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ • S4Vectors (43 files)              • SummarizedExperiment (41 files)      │
+│ • SingleCellExperiment (39 files)   • stats (18 files)                     │
+│ • utils (18 files)                  • ggplot2 (12 files)                   │
+│ • methods (12 files)                • DelayedArray (10 files)              │
+│ • withr (10 files)                  • scater (8 files)                     │
+│ • data.table (8 files)              • reticulate (8 files)                 │
+│ • Matrix (7 files)                  • BiocParallel (6 files)               │
+│ • scran (6 files)                   • cowplot (5 files)                    │
+│ • dplyr (5 files)                   • Seurat (5 files)                     │
+│ • stringr (5 files)                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+CANDIDATES FOR SUGGESTS (TIER 1: SINGLE-FILE USAGE - HIGH PRIORITY)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ANALYSIS METHODS:                                                            │
+│   • DESeq2             (runDEAnalysis.R only)                              │
+│   • enrichR            (enrichRSCE.R only)                                 │
+│   • SingleR            (runSingleR.R only)                                 │
+│   • TSCAN              (runTSCAN.R only)                                   │
+│   • SoupX              (runSoupX.R only)                                   │
+│   • VAM                (runVAM.R only)                                     │
+│                                                                             │
+│ DOUBLET DETECTION METHODS:                                                 │
+│   • scDblFinder        (scDblFinder_doubletDetection.R only)               │
+│   • scds               (scds_doubletdetection.R only)                      │
+│   • KernSmooth         (doubletFinder_doubletDetection.R only)             │
+│   • ROCR               (doubletFinder_doubletDetection.R only)             │
+│   • fields             (doubletFinder_doubletDetection.R only)             │
+│                                                                             │
+│ DATA IMPORT:                                                                │
+│   • tximport           (importAlevin.R only)                               │
+│   • AnnotationHub      (importExampleData.R only)                          │
+│   • ensembldb          (importExampleData.R only)                          │
+│   • ExperimentHub      (importExampleData.R only)                          │
+│   • TENxPBMCData       (importExampleData.R only)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+CANDIDATES FOR SUGGESTS (TIER 2: TWO-FILE USAGE)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ • MAST                 (plotDEAnalysis.R, runDEAnalysis.R)                 │
+│ • limma                (runBatchCorrection.R, runDEAnalysis.R)             │
+│ • batchelor            (runBatchCorrection.R only - within 1 function)     │
+│ • scMerge              (runBatchCorrection.R only - within 1 function)     │
+│ • zinbwave             (runBatchCorrection.R only - within 1 function)     │
+│ • sva                  (runBatchCorrection.R only - within 1 function)     │
+│ • ComplexHeatmap       (computeHeatmap.R, plotSCEHeatmap.R)               │
+│ • DropletUtils         (dropletUtils_barcodeRank.R, dropletUtils_empty)   │
+│ • plotly               (miscFunctions.R, seuratFunctions.R)                │
+│ • metap                (seuratFunctions.R only)                            │
+│ • plyr                 (importCellRanger.R, importSTARSolo.R)              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ARCHITECTURAL ISSUES
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. CRITICAL: runBatchCorrection.R (41 KB)                                  │
+│    Contains 8+ heavy dependencies in single file:                          │
+│    → batchelor, limma, sva, scMerge, zinbwave, reticulate + Python        │
+│    → RECOMMEND: Split into 5 method-specific files                         │
+│                                                                             │
+│ 2. HIGH: runDEAnalysis.R (32 KB)                                           │
+│    Contains 3 heavy DE methods in single file:                             │
+│    → limma, DESeq2, MAST + Wilcox/ANOVA                                    │
+│    → RECOMMEND: Separate method implementations                            │
+│                                                                             │
+│ 3. MEDIUM: Doublet detection (4 separate files)                            │
+│    Each method loaded at startup despite being independent                 │
+│    → RECOMMEND: Add lazy loading wrapper function                          │
+│                                                                             │
+│ 4. MEDIUM: Visualization libraries                                         │
+│    ComplexHeatmap, plotly, ggplotify, circlize all loaded at startup      │
+│    → RECOMMEND: Move specialized viz to Suggests                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+RECOMMENDED REORGANIZATION
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CURRENT:      84 Imports + 15 Suggests = 99 total dependencies             │
+│ PROPOSED:     40 Imports + 60 Suggests = 100 total dependencies            │
+│                                                                             │
+│ BENEFIT:      50% reduction in startup dependencies                        │
+│               Users get clear error messages for missing optional packages  │
+│               Package loads faster                                          │
+│               Clearer modular architecture                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+NEXT STEPS
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. Split runBatchCorrection.R into method-specific modules                 │
+│ 2. Add lazy loading to doublet detection methods                           │
+│ 3. Move 40+ packages to Suggests with requireNamespace() checks            │
+│ 4. Update documentation with installation profiles (lite/standard/full)    │
+│ 5. Implement CI testing with optional dependencies                         │
+│ 6. Add helpful error messages for missing packages                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+FOR DETAILED ANALYSIS: See /home/user/singleCellTK/DEPENDENCY_ANALYSIS.md

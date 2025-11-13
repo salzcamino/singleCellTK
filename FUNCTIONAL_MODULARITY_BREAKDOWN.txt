@@ -1,0 +1,284 @@
+================================================================================
+FUNCTIONAL BREAKDOWN WITH MODULARITY RECOMMENDATIONS
+================================================================================
+
+1. IMPORT FUNCTIONS (importXXX.R files)
+   ├─ Core files: importAlevin, importAnnData, importBUStools, importCellRanger
+   │              importDropEst, importExampleData, importFromFiles, 
+   │              importGeneSets, importMultipleSources, importOptimus,
+   │              importSTARSolo, importSeqc
+   │
+   ├─ Dependencies (21 types):
+   │  ✓ CORE:     S4Vectors(11), SingleCellExperiment(9), SummarizedExperiment(9)
+   │  ✓ DATA:    Matrix(3), data.table(3), DelayedArray(7)
+   │  ? OPTIONAL: tximport(Alevin), ensembldb(anno), AnnotationHub, ExperimentHub,
+   │              scRNAseq(example), TENxPBMCData(example)
+   │
+   ├─ Recommendation: 
+   │  - Keep core structure dependencies in Imports
+   │  - Move data source-specific packages to Suggests:
+   │    * tximport → Suggests (Alevin only)
+   │    * ensembldb → Suggests (optional annotation)
+   │    * AnnotationHub/ExperimentHub → Suggests (examples only)
+   │    * scRNAseq/TENxPBMCData → Suggests (example data)
+   │
+   └─ Modularity Score: 7/10 (well-separated by source format)
+
+────────────────────────────────────────────────────────────────────────────
+
+2. QUALITY CONTROL (runQC, runPerCellQC, detectCellOutlier, etc.)
+   ├─ Core files: runQC, runPerCellQC, runQCUtils, detectCellOutlier,
+   │              dropletUtils_barcodeRank, dropletUtils_emptyDrops,
+   │              ggPerQCWrapper, sctkQCUtils
+   │
+   ├─ Dependencies (20 types):
+   │  ✓ CORE:     S4Vectors(4), SummarizedExperiment(3), scater(2)
+   │  ? OPTIONAL: DropletUtils(2), AnnotationHub(implicit)
+   │
+   ├─ Recommendation:
+   │  - DropletUtils is ONLY used in droplet-based QC
+   │  - Could move to Suggests with alternative QC methods
+   │
+   └─ Modularity Score: 8/10 (well-organized by QC type)
+
+────────────────────────────────────────────────────────────────────────────
+
+3. DOUBLET DETECTION - MODULARIZATION OPPORTUNITY!
+   ├─ Core files:
+   │  ├─ doubletFinder_doubletDetection.R (uses: KernSmooth, ROCR, fields, Seurat)
+   │  ├─ scDblFinder_doubletDetection.R  (uses: scDblFinder)
+   │  ├─ scds_doubletdetection.R         (uses: scds)
+   │  └─ scrublet_doubletDetection.R     (uses: reticulate → Python)
+   │
+   ├─ Current Problem:
+   │  ALL 4 methods loaded at startup, but users typically use only ONE
+   │  Loading ~25% of doublet detection code they won't use
+   │
+   ├─ Candidates for Suggests:
+   │  ✗ scDblFinder - ONLY in 1 file
+   │  ✗ scds - ONLY in 1 file  
+   │  ✗ KernSmooth - ONLY in doubletFinder
+   │  ✗ ROCR - ONLY in doubletFinder
+   │  ✗ fields - ONLY in doubletFinder
+   │
+   ├─ RECOMMENDED REFACTOR:
+   │  OLD: runDoubletDetection(method = "x") dispatches to 4 loaded modules
+   │  NEW: runDoubletDetection(method = "x") lazy-loads only needed method
+   │       with helpful error if package missing
+   │
+   └─ Modularity Score: 3/10 (CRITICAL - all methods always loaded)
+
+────────────────────────────────────────────────────────────────────────────
+
+4. NORMALIZATION
+   ├─ Core files: runNormalization, scater_CPM, scater_logNormCounts,
+   │              scater_PCA, trimCounts, computeZScore
+   │
+   ├─ Dependencies (3 types):
+   │  ✓ CORE:     scater(3), withr(1), BiocParallel(1)
+   │
+   ├─ Recommendation: No changes needed - scater is core infrastructure
+   │
+   └─ Modularity Score: 9/10 (minimal, focused)
+
+────────────────────────────────────────────────────────────────────────────
+
+5. BATCH CORRECTION - CRITICAL PROBLEM!
+   ├─ Core file:  runBatchCorrection.R (41 KB - single file)
+   │
+   ├─ This ONE file contains 8 HEAVY dependencies:
+   │  1. limma (ComBatSeq)          - Linear regression batch correction
+   │  2. sva (ComBat, SVA)           - Empirical Bayes batch correction
+   │  3. batchelor (MNN variants)    - Graph-based correction
+   │  4. scMerge (fastMNN wrapper)   - Fast MNN implementation
+   │  5. zinbwave (ZINB-WAVE)        - Zero-inflated model-based
+   │  6. reticulate (Python methods):
+   │     - Harmony                   - Probabilistic integration
+   │     - BBKNN                     - Batch-balanced KNN
+   │     - Scanorama                 - Panoramic integration
+   │
+   ├─ Impact:
+   │  - 20% of file size (alone)
+   │  - Users often need ONLY 1-2 methods
+   │  - Loading all 8 methods wastes memory/startup
+   │
+   ├─ CRITICAL RECOMMENDATION - SPLIT INTO:
+   │  runBatchCorrection.R (wrapper, dispatcher)
+   │    ├─ _limma.R        (ComBat-Seq only, limma to Suggests)
+   │    ├─ _sva.R          (SVA methods only, sva to Suggests)
+   │    ├─ _mnn.R          (batchelor/scMerge, both to Suggests)
+   │    ├─ _zinbwave.R     (ZINB-WAVE only, to Suggests)
+   │    └─ _python.R       (Harmony/BBKNN/Scanorama, lazy-load via reticulate)
+   │
+   └─ Modularity Score: 2/10 (CRITICAL - monolithic kitchen sink)
+
+────────────────────────────────────────────────────────────────────────────
+
+6. DIMENSIONALITY REDUCTION
+   ├─ Core files: runDimReduce, runTSNE, runUMAP, scater_PCA, scanpyFunctions
+   │
+   ├─ Dependencies (12 types):
+   │  ✓ CORE:     SingleCellExperiment(3), scater(2), withr(3), stats(utils)
+   │  ? OPTIONAL: Rtsne (only in runTSNE), Seurat (only called in dispatcher)
+   │              reticulate (Python: scanpy, umap, etc.)
+   │
+   ├─ Recommendation:
+   │  - Rtsne could go to Suggests (but commonly used)
+   │  - reticulate stays (lightweight, Python modules lazy-load)
+   │  - Seurat integration already modular
+   │
+   └─ Modularity Score: 7/10 (well-separated by method)
+
+────────────────────────────────────────────────────────────────────────────
+
+7. CLUSTERING
+   ├─ Core file: runCluster.R
+   │
+   ├─ Dependencies (7 types):
+   │  ✓ CORE:     scran(1), igraph(1), BiocParallel(1)
+   │
+   └─ Modularity Score: 8/10 (minimal, focused)
+
+────────────────────────────────────────────────────────────────────────────
+
+8. DIFFERENTIAL EXPRESSION - MODULARITY OPPORTUNITY!
+   ├─ Core files: runDEAnalysis.R (32 KB), plotDEAnalysis.R, runFindMarker.R
+   │
+   ├─ runDEAnalysis.R contains:
+   │  1. limma method          - Linear regression
+   │  2. DESeq2 method         - Negative binomial GLM  
+   │  3. MAST method           - Zero-inflated model
+   │  4. Wilcoxon test         - Non-parametric
+   │  5. ANOVA                 - Parametric test
+   │
+   ├─ Current Problem:
+   │  - Single 32 KB file
+   │  - All DE methods always loaded
+   │  - Heavy dependencies: DESeq2, MAST, limma
+   │
+   ├─ RECOMMENDED REFACTOR:
+   │  runDEAnalysis.R (wrapper)
+   │    ├─ _limma.R        (limma → Suggests)
+   │    ├─ _deseq2.R       (DESeq2 → Suggests)
+   │    ├─ _mast.R         (MAST → Suggests)
+   │    ├─ _wilcox.R       (stats only)
+   │    └─ _anova.R        (stats only)
+   │
+   │  plotDEAnalysis.R - uses MAST, celda (both could be Suggests)
+   │
+   ├─ Candidates for Suggests:
+   │  ✗ DESeq2 - ONLY runDEAnalysis
+   │  ✗ limma - also in batch correction but independent there
+   │  ✗ MAST - plotDEAnalysis + runDEAnalysis
+   │
+   └─ Modularity Score: 4/10 (MEDIUM - could split methods)
+
+────────────────────────────────────────────────────────────────────────────
+
+9. FEATURE SELECTION
+   ├─ Core files: getTopHVG, scran_modelGeneVar, runFeatureSelection
+   │
+   ├─ Dependencies (2 types):
+   │  ✓ CORE:     scran(1), stats(1)
+   │
+   └─ Modularity Score: 9/10 (minimal, focused)
+
+────────────────────────────────────────────────────────────────────────────
+
+10. CELL TYPE LABELING - PERFECT ISOLATION!
+    ├─ Core file: runSingleR.R (7 KB)
+    │
+    ├─ Dependencies:
+    │  ✗ SingleR - ONLY in this file
+    │  ✗ celldex - reference data only
+    │  ? scRNAseq - example data
+    │
+    ├─ RECOMMENDATION:
+    │  Move SingleR to Suggests - used for SINGLE specific task
+    │  celldex follows SingleR to Suggests
+    │
+    └─ Modularity Score: 10/10 (perfect isolation for Suggests)
+
+────────────────────────────────────────────────────────────────────────────
+
+11. PATHWAY ANALYSIS
+    ├─ Core files: runGSVA, importGeneSets, enrichRSCE, plotPathway, runVAM
+    │
+    ├─ Three completely independent analysis methods:
+    │  1. enrichR (enrichRSCE.R) - Online database enrichment
+    │  2. GSVA (runGSVA.R) - Single sample pathway scores
+    │  3. VAM (runVAM.R) - Variance-adjusted module scores
+    │
+    ├─ Candidates for Suggests:
+    │  ✗ enrichR - ONLY enrichRSCE (calls online DB, requires internet)
+    │  ✗ GSVA - ONLY runGSVA
+    │  ✗ VAM - ONLY runVAM
+    │  ? msigdbr - gene set annotation (optional)
+    │  ? GSEABase - gene set infrastructure (minimal usage)
+    │
+    └─ Modularity Score: 9/10 (well-separated methods)
+
+────────────────────────────────────────────────────────────────────────────
+
+12. TRAJECTORY ANALYSIS - PERFECT ISOLATION!
+    ├─ Core file: runTSCAN.R (41 KB)
+    │
+    ├─ Dependencies:
+    │  ✗ TSCAN - ONLY in this file
+    │  ✗ TrajectoryUtils - ONLY in this file
+    │  ✓ scater, scran, scuttle - core infrastructure
+    │
+    ├─ RECOMMENDATION:
+    │  Move TSCAN → Suggests
+    │  Move TrajectoryUtils → Suggests
+    │  These are specialized methods used for specific analysis
+    │
+    └─ Modularity Score: 10/10 (perfect isolation for Suggests)
+
+────────────────────────────────────────────────────────────────────────────
+
+13. SEURAT INTEGRATION - MOSTLY ISOLATED
+    ├─ Core file: seuratFunctions.R
+    │
+    ├─ Dependencies:
+    │  ? Seurat (5 files total, but primarily seuratFunctions)
+    │  ? plotly, metap - visualization/support
+    │
+    ├─ RECOMMENDATION:
+    │  Could move Seurat → Suggests
+    │  But it's used in 5 files (slightly more distributed)
+    │  Consider: Seurat as optional with requireNamespace checks
+    │
+    └─ Modularity Score: 7/10 (somewhat distributed)
+
+════════════════════════════════════════════════════════════════════════════
+
+SPLIT PRIORITY RANKING
+════════════════════════════════════════════════════════════════════════════
+
+CRITICAL (DO FIRST):
+1. runBatchCorrection.R → Split into 5 methods + move to Suggests
+   Impact: Reduces startup load by ~5% per unused method
+   Difficulty: Medium (refactor needed)
+   
+HIGH (DO SECOND):
+2. runDEAnalysis.R → Split into 5 methods + move to Suggests
+   Impact: Reduces startup load by ~4% per unused method
+   Difficulty: Medium (refactor needed)
+
+3. Doublet detection → Add lazy loading wrapper + move to Suggests
+   Impact: Reduces startup load by ~3% per unused method
+   Difficulty: Low (mostly moving, less refactor)
+
+MEDIUM (DO THIRD):
+4. Move single-use packages to Suggests:
+   - enrichR, TSCAN, SingleR, SoupX, VAM, scDblFinder, scds
+   Impact: Reduces startup load by ~2-3%
+   Difficulty: Low (just moving, add requireNamespace checks)
+
+5. Move specialized viz → Suggests:
+   - plotly, ComplexHeatmap, ggplotify, etc.
+   Impact: Reduces startup load by ~1-2%
+   Difficulty: Low (conditionally import)
+
+════════════════════════════════════════════════════════════════════════════
