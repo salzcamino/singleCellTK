@@ -33,6 +33,20 @@ exportSCEtoAnnData <- function(sce,
                                 compression = c('gzip','lzf', "None"),
                                 compressionOpts = NULL,
                                 forceDense = FALSE){
+  # Check for zellkonverter and anndata packages
+  if (!requireNamespace("zellkonverter", quietly = TRUE)) {
+    stop("The zellkonverter package is required for AnnData export. ",
+         "Install with: BiocManager::install('zellkonverter')\n",
+         "Or use: singleCellTK::installOptionalDeps('import_export')",
+         call. = FALSE)
+  }
+  if (!requireNamespace("anndata", quietly = TRUE)) {
+    stop("The anndata package is required for AnnData export. ",
+         "Install with: BiocManager::install('anndata')\n",
+         "Or use: singleCellTK::installOptionalDeps('import_export')",
+         call. = FALSE)
+  }
+
   compression <- match.arg(compression)
   # currently not needed
   #forceDense <- match.arg(forceDense)

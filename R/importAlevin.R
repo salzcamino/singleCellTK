@@ -28,6 +28,13 @@ importAlevin <- function(
   delayedArray = FALSE,
   class = c("Matrix", "matrix"),
   rowNamesDedup = TRUE) {
+  # Check for tximport package
+  if (!requireNamespace("tximport", quietly = TRUE)) {
+    stop("The tximport package is required for importing Alevin data. ",
+         "Install with: BiocManager::install('tximport')\n",
+         "Or use: singleCellTK::installOptionalDeps('import_export')",
+         call. = FALSE)
+  }
 
   class <- match.arg(class)
 

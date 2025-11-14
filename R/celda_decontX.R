@@ -95,6 +95,14 @@ runDecontX <- function(inSCE,
     logfile = NULL,
     verbose = TRUE
 ) {
+  # Check for celda package
+  if (!requireNamespace("celda", quietly = TRUE)) {
+    stop("The celda package is required for decontX. ",
+         "Install with: BiocManager::install('celda')\n",
+         "Or use: singleCellTK::installOptionalDeps('qc')",
+         call. = FALSE)
+  }
+
   #argsList <- as.list(formals(fun = sys.function(sys.parent()), envir = parent.frame()))
   argsList <- mget(names(formals()),sys.frame(sys.nframe()))
   if(!is.null(sample)) {
