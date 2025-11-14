@@ -42,6 +42,14 @@ runSingleR <- function(inSCE,
                        level = "fine",
                        featureType = c("symbol", "ensembl"),
                        labelByCluster = NULL) {
+    # Check for SingleR package
+    if (!requireNamespace("SingleR", quietly = TRUE)) {
+        stop("The SingleR package is required for this function. ",
+             "Install with: BiocManager::install('SingleR')\n",
+             "Or use: singleCellTK::installOptionalDeps('annotation')",
+             call. = FALSE)
+    }
+
     # Input checks
     if (!inherits(inSCE, "SingleCellExperiment")) {
         stop('"inSCE" should be a SingleCellExperiment inherited Object.')
@@ -75,6 +83,14 @@ runSingleR <- function(inSCE,
                     "inSCE.")
         }
     } else {
+        # Check for celldex when using built-in references
+        if (!requireNamespace("celldex", quietly = TRUE)) {
+            stop("The celldex package is required for built-in reference datasets. ",
+                 "Install with: BiocManager::install('celldex')\n",
+                 "Or use: singleCellTK::installOptionalDeps('annotation')",
+                 call. = FALSE)
+        }
+
         if (useBltinRef == "hpca") {
             message(date(), " ... Loading reference data 'HumanPrimaryCellAtlasData'")
             ref <- celldex::HumanPrimaryCellAtlasData(ensembl = useEnsembl,

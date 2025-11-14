@@ -150,6 +150,14 @@ runTSCAN <- function(inSCE,
                      cluster = NULL,
                      starter = NULL,
                      seed = 12345) {
+    # Check for TSCAN package
+    if (!requireNamespace("TSCAN", quietly = TRUE)) {
+        stop("The TSCAN package is required for trajectory analysis. ",
+             "Install with: BiocManager::install('TSCAN')\n",
+             "Or use: singleCellTK::installOptionalDeps('trajectory')",
+             call. = FALSE)
+    }
+
     if (is.null(cluster)) {
         # DON'T RETURN TO `inSCE`
         # It really overwrites existing cluster labels

@@ -125,6 +125,14 @@ runComBatSeq <- function(inSCE, useAssay = "counts", batch = 'batch',
                          covariates = NULL, bioCond = NULL, useSVA = FALSE,
                          assayName = "ComBatSeq", shrink = FALSE,
                          shrinkDisp = FALSE, nGene = NULL) {
+  # Check for sva package
+  if (!requireNamespace("sva", quietly = TRUE)) {
+    stop("The sva package is required for ComBat-Seq batch correction. ",
+         "Install with: BiocManager::install('sva')\n",
+         "Or use: singleCellTK::installOptionalDeps('batch')",
+         call. = FALSE)
+  }
+
   if(!inherits(inSCE, "SingleCellExperiment")){
     stop("\"inSCE\" should be a SingleCellExperiment Object.")
   }
@@ -241,6 +249,14 @@ runFastMNN <- function(inSCE, useAssay = "logcounts", useReducedDim = NULL,
                        propK = NULL, ndist = 3, minBatchSkip = 0,
                        cosNorm = TRUE, nComponents = 50, weights = NULL,
                        BPPARAM = BiocParallel::SerialParam()){
+  # Check for batchelor package
+  if (!requireNamespace("batchelor", quietly = TRUE)) {
+    stop("The batchelor package is required for FastMNN. ",
+         "Install with: BiocManager::install('batchelor')\n",
+         "Or use: singleCellTK::installOptionalDeps('batch')",
+         call. = FALSE)
+  }
+
   useMat <- .selectSCEMatrix(inSCE, useAssay = useAssay,
                              useReducedDim = useReducedDim,
                              returnMatrix = TRUE)
@@ -538,6 +554,14 @@ runMNNCorrect <- function(inSCE, useAssay = 'logcounts', batch = 'batch',
                           assayName = 'MNN', k = 20L, propK = NULL,
                           sigma = 0.1, cosNormIn = TRUE, cosNormOut = TRUE,
                           varAdj = TRUE, BPPARAM = BiocParallel::SerialParam()){
+  # Check for batchelor package
+  if (!requireNamespace("batchelor", quietly = TRUE)) {
+    stop("The batchelor package is required for MNN Correct. ",
+         "Install with: BiocManager::install('batchelor')\n",
+         "Or use: singleCellTK::installOptionalDeps('batch')",
+         call. = FALSE)
+  }
+
   ## Input check
   useMat <- .selectSCEMatrix(inSCE, useAssay = useAssay, returnMatrix = TRUE)
   mat <- useMat$mat
@@ -698,6 +722,14 @@ runSCMerge <- function(inSCE, useAssay = "logcounts", batch = 'batch',
                        assayName = "scMerge", hvgExprs = "counts", seg = NULL,
                        kmeansK = NULL, cellType = NULL,
                        BPPARAM = BiocParallel::SerialParam()){
+  # Check for scMerge package
+  if (!requireNamespace("scMerge", quietly = TRUE)) {
+    stop("The scMerge package is required for this function. ",
+         "Install with: BiocManager::install('scMerge')\n",
+         "Or use: singleCellTK::installOptionalDeps('batch')",
+         call. = FALSE)
+  }
+
   ## Input check
   useMat <- .selectSCEMatrix(inSCE, useAssay = useAssay, returnMatrix = TRUE)
   .selectSCEMatrix(inSCE, useAssay = hvgExprs, returnMatrix = FALSE)
@@ -788,6 +820,14 @@ runZINBWaVE <- function(inSCE, useAssay = 'counts', batch = 'batch',
                         nHVG = 1000L, nComponents = 50L, epsilon = 1000,
                         nIter = 10L, reducedDimName = 'zinbwave',
                         BPPARAM = BiocParallel::SerialParam()){
+  # Check for zinbwave package
+  if (!requireNamespace("zinbwave", quietly = TRUE)) {
+    stop("The zinbwave package is required for this function. ",
+         "Install with: BiocManager::install('zinbwave')\n",
+         "Or use: singleCellTK::installOptionalDeps('batch')",
+         call. = FALSE)
+  }
+
   ## Input check
   if(!inherits(inSCE, "SingleCellExperiment")){
     stop("\"inSCE\" should be a SingleCellExperiment Object.")

@@ -49,6 +49,14 @@
 #'               useAssay = "logcounts")
 runVAM <- function(inSCE, geneSetCollectionName = "H", useAssay = "logcounts",
                    resultNamePrefix = NULL, center = FALSE, gamma = TRUE) {
+  # Check for VAM package
+  if (!requireNamespace("VAM", quietly = TRUE)) {
+    stop("The VAM package is required for this function. ",
+         "Install with: BiocManager::install('VAM')\n",
+         "Or use: singleCellTK::installOptionalDeps('pathway')",
+         call. = FALSE)
+  }
+
   ###################################################
   ###  create gene set collection
   ###################################################
