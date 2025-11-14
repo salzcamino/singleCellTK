@@ -360,7 +360,22 @@ runDoubletFinder <- function(inSCE,
                              formationRate = 0.075,
                              nCores = NULL,
                              verbose = FALSE) {
-  
+  # Check for DoubletFinder dependencies
+  missing <- character()
+  for (pkg in c("ROCR", "KernSmooth", "fields")) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      missing <- c(missing, pkg)
+    }
+  }
+  if (length(missing) > 0) {
+    stop("DoubletFinder requires additional packages: ",
+         paste(missing, collapse = ", "), ". ",
+         "Install with: install.packages(c('",
+         paste(missing, collapse = "', '"), "'))\n",
+         "Or use: singleCellTK::installOptionalDeps('doublet')",
+         call. = FALSE)
+  }
+
   argsList <- mget(names(formals()), sys.frame(sys.nframe()))
   argsList <- argsList[!names(argsList) %in% c("inSCE")]
   argsList$packageVersion <- "2.0.2"

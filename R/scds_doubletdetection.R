@@ -42,8 +42,16 @@ runCxds <- function(
     verb = FALSE,
     retRes = FALSE,
     estNdbl = FALSE,
-    useAssay = "counts") 
+    useAssay = "counts")
 {
+  # Check for scds package
+  if (!requireNamespace("scds", quietly = TRUE)) {
+    stop("The scds package is required for this function. ",
+         "Install with: BiocManager::install('scds')\n",
+         "Or use: singleCellTK::installOptionalDeps('doublet')",
+         call. = FALSE)
+  }
+
   message(date(), " ... Running 'cxds'")
   
   ## Getting current arguments
@@ -176,6 +184,14 @@ runBcds <- function(
     estNdbl = FALSE,
     useAssay = "counts"
 ) {
+  # Check for scds package
+  if (!requireNamespace("scds", quietly = TRUE)) {
+    stop("The scds package is required for this function. ",
+         "Install with: BiocManager::install('scds')\n",
+         "Or use: singleCellTK::installOptionalDeps('doublet')",
+         call. = FALSE)
+  }
+
   message(date(), " ... Running 'bcds'")
   
   ## Getting current arguments
@@ -300,8 +316,16 @@ runCxdsBcdsHybrid <- function(inSCE,
                               verb = FALSE,
                               estNdbl = FALSE,
                               force = FALSE,
-                              useAssay = "counts") 
+                              useAssay = "counts")
 {
+  # Check for scds package
+  if (!requireNamespace("scds", quietly = TRUE)) {
+    stop("The scds package is required for this function. ",
+         "Install with: BiocManager::install('scds')\n",
+         "Or use: singleCellTK::installOptionalDeps('doublet')",
+         call. = FALSE)
+  }
+
   message(date(), " ... Running 'cxds_bcds_hybrid'")
   
   ## Getting current arguments

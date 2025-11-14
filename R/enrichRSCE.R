@@ -46,6 +46,14 @@ runEnrichR <- function(inSCE,
                        db = NULL,
                        by = "rownames",
                        featureName = NULL) {
+  # Check for enrichR package
+  if (!requireNamespace("enrichR", quietly = TRUE)) {
+    stop("The enrichR package is required for this function. ",
+         "Install with: BiocManager::install('enrichR')\n",
+         "Or use: singleCellTK::installOptionalDeps('pathway')",
+         call. = FALSE)
+  }
+
   if (!inherits(inSCE, "SingleCellExperiment")) {
     stop("inSCE has to inherit from SingleCellExperiment object.")
   }
