@@ -2479,51 +2479,46 @@ shinyServer(function(input, output, session) {
       shinyjs::show(selector = ".nlw-qcf")
     }))
   
-  #Render summary table
-  output$beforeFiltering <- renderTable({
-    req(vals$original)
+  # Shared reactive to detect sample variable name - reduces duplicate logic
+  sampleVarName <- reactive({
+    req(vals$counts)
     if ("sample" %in% names(colData(vals$counts))) {
-      sampleVar <- "sample"
+      "sample"
     } else if ("Sample" %in% names(colData(vals$counts))) {
-      sampleVar <- "Sample"
+      "Sample"
     } else {
-      sampleVar <- NULL
+      NULL
     }
-    # Setting 'useAssay=NULL' assumes that the first assay is the one to count
+  })
+
+  # Cached reactive for summarizing original SCE
+  summarizedOriginal <- reactive({
+    req(vals$original)
     singleCellTK::summarizeSCE(inSCE = vals$original,
                                useAssay = NULL,
-                               sampleVariableName = sampleVar)
-  }, striped = TRUE, border = TRUE, align = "c", spacing = "l")
-  
-  output$afterFiltering <- renderTable({
+                               sampleVariableName = sampleVarName())
+  }) |> bindCache(vals$original, sampleVarName())
+
+  # Cached reactive for summarizing filtered SCE
+  summarizedFiltered <- reactive({
     req(vals$counts)
-    if ("sample" %in% names(colData(vals$counts))) {
-      sampleVar <- "sample"
-    } else if ("Sample" %in% names(colData(vals$counts))) {
-      sampleVar <- "Sample"
-    } else {
-      sampleVar <- NULL
-    }
-    # Setting 'useAssay=NULL' assumes that the first assay is the one to count
     singleCellTK::summarizeSCE(inSCE = vals$counts,
                                useAssay = NULL,
-                               sampleVariableName = sampleVar)
+                               sampleVariableName = sampleVarName())
+  }) |> bindCache(vals$counts, sampleVarName())
+
+  #Render summary table
+  output$beforeFiltering <- renderTable({
+    summarizedOriginal()
   }, striped = TRUE, border = TRUE, align = "c", spacing = "l")
-  
+
+  output$afterFiltering <- renderTable({
+    summarizedFiltered()
+  }, striped = TRUE, border = TRUE, align = "c", spacing = "l")
+
   #Render summary table
   output$summarycontents <- DT::renderDataTable({
-    req(vals$counts)
-    if ("sample" %in% names(colData(vals$counts))) {
-      sampleVar <- "sample"
-    } else if ("Sample" %in% names(colData(vals$counts))) {
-      sampleVar <- "Sample"
-    } else {
-      sampleVar <- NULL
-    }
-    # Setting 'useAssay=NULL' assumes that the first assay is the one to count
-    singleCellTK::summarizeSCE(inSCE = vals$counts,
-                               useAssay = NULL,
-                               sampleVariableName = sampleVar)
+    summarizedFiltered()
   })
   
   observeEvent(input$filteredSample, {
@@ -4364,9 +4359,20 @@ shinyServer(function(input, output, session) {
     }
   ))
   
-  observeEvent(input$celdamodheatmapbtn,{
-    output$celdamodheatmapplt <- renderPlot({moduleHeatmap(vals$counts, topCells= input$celdamodheatmaptopcells, featureModule = input$celdamodheatmapnum)})
-    output$celdamodprobplt <- renderPlot({plotDimReduceModule(vals$counts, modules =  input$celdamodheatmapnum, reducedDimName = "celda_UMAP")})
+  # Moved renderPlot outside observeEvent for better performance
+  output$celdamodheatmapplt <- renderPlot({
+    req(vals$counts)
+    req(input$celdamodheatmaptopcells, input$celdamodheatmapnum)
+    moduleHeatmap(vals$counts, topCells= input$celdamodheatmaptopcells, featureModule = input$celdamodheatmapnum)
+  }) |> bindEvent(input$celdamodheatmapbtn, ignoreNULL = TRUE, ignoreInit = TRUE)
+
+  output$celdamodprobplt <- renderPlot({
+    req(vals$counts)
+    req(input$celdamodheatmapnum)
+    plotDimReduceModule(vals$counts, modules = input$celdamodheatmapnum, reducedDimName = "celda_UMAP")
+  }) |> bindEvent(input$celdamodheatmapbtn, ignoreNULL = TRUE, ignoreInit = TRUE)
+
+  observeEvent(input$celdamodheatmapbtn, {
     showNotification("Module heatmap complete.")
   })
   
@@ -5728,27 +5734,14 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  observeEvent(input$plotBubbleplot, {
+  # Consolidated renderPlot for Bubbleplot - responds to both plot and update buttons
+  output$Bubbleplot <- renderPlot({
     req(vals$counts)
-    output$Bubbleplot <- renderPlot({
-      isolate({
-        plotBubble(inSCE=vals$counts, useAssay=input$bpAssay, featureNames=input$bpFeatures, 
-                   displayName=input$bpRow, groupNames=input$bpCluster, title=input$bpTitle, 
-                   xlab=input$bpX, ylab=input$bpY, colorLow=input$bpLow, colorHigh=input$bpHigh, scale=input$scaleBubble)
-      })
-    })
-  })
-  
-  observeEvent(input$updateBubbleplot, {
-    req(vals$counts)
-    output$Bubbleplot <- renderPlot({
-      isolate({
-        plotBubble(inSCE=vals$counts, useAssay=input$bpAssay, featureNames=input$bpFeatures, 
-                   displayName=input$bpRow, groupNames=input$bpCluster, title=input$bpTitle, 
-                   xlab=input$bpX, ylab=input$bpY, colorLow=input$bpLow, colorHigh=input$bpHigh, scale=input$scaleBubble)
-      })
-    })
-  })
+    req(input$bpAssay, input$bpFeatures)
+    plotBubble(inSCE=vals$counts, useAssay=input$bpAssay, featureNames=input$bpFeatures,
+               displayName=input$bpRow, groupNames=input$bpCluster, title=input$bpTitle,
+               xlab=input$bpX, ylab=input$bpY, colorLow=input$bpLow, colorHigh=input$bpHigh, scale=input$scaleBubble)
+  }) |> bindEvent(input$plotBubbleplot, input$updateBubbleplot, ignoreNULL = TRUE, ignoreInit = TRUE)
   
   # #COG For BubblePlot
   # observeEvent(input$closeDropDownBubble, {
@@ -6581,42 +6574,46 @@ shinyServer(function(input, output, session) {
     span(msg, style = 'margin-left:10px')
   })
   ## DE - condition determination method2 ####
+  # Shared reactive for processing colData - eliminates duplicate lapply logic
+  processedColData <- reactive({
+    req(vals$counts)
+    df <- lapply(colData(vals$counts),
+                 function(i){
+                   if(is.character(i) && !length(unique(i)) == length(i)){
+                     return(as.factor(i))
+                   } else if(is.integer(i) &&
+                             !length(unique(i)) == length(i)){
+                     return(as.factor(i))
+                   } else {
+                     return(i)
+                   }
+                 })
+    data.frame(df, row.names = colnames(vals$counts))
+  }) |> bindCache(vals$counts)
+
   ## condition 1 table operation vvvv
   output$deC2G1Table <- DT::renderDataTable({
-    if(!is.null(vals$counts)){
-      df <- lapply(colData(vals$counts),
-                   function(i){
-                     if(is.character(i) && !length(unique(i)) == length(i)){
-                       return(as.factor(i))
-                     } else if(is.integer(i) &&
-                               !length(unique(i)) == length(i)){
-                       return(as.factor(i))
-                     } else {
-                       return(i)
-                     }
-                   })
-      df <- data.frame(df, row.names = colnames(vals$counts))
-      DT::datatable(df, filter = "top", options = list(scrollX = TRUE))
-    }
+    DT::datatable(processedColData(), filter = "top", options = list(scrollX = TRUE))
   }, server = TRUE)
   deC2G1Table_proxy <- DT::dataTableProxy("deC2G1Table")
-  
+
   observeEvent(input$deC2G1Col, {
+    req(vals$counts)
     colNames <- names(colData(vals$counts))
     showIdx <- which(colNames %in% input$deC2G1Col)
     DT::showCols(deC2G1Table_proxy, showIdx, reset = TRUE)
   })
-  
+
   observeEvent(input$deC2G1Table_addAll, {
     DT::selectRows(deC2G1Table_proxy,
                    sort(unique(c(input$deC2G1Table_rows_selected,
                                  input$deC2G1Table_rows_all))))
   })
-  
+
   observeEvent(input$deC2G1Table_clear, {
     DT::selectRows(deC2G1Table_proxy, NULL)
   })
-  
+
   output$deC2G1info <- renderUI({
     nCell <- length(input$deC2G1Table_rows_selected)
     p(paste0("Totally ", nCell, " cells selected for ", input$deG1Name))
@@ -6624,21 +6621,7 @@ shinyServer(function(input, output, session) {
   ## condition 1 table operation ^^^^
   ## condition 2 table operation vvvv
   output$deC2G2Table <- DT::renderDataTable({
-    if(!is.null(vals$counts)){
-      df <- lapply(colData(vals$counts),
-                   function(i){
-                     if(is.character(i) && !length(unique(i)) == length(i)){
-                       return(as.factor(i))
-                     } else if(is.integer(i) &&
-                               !length(unique(i)) == length(i)){
-                       return(as.factor(i))
-                     } else {
-                       return(i)
-                     }
-                   })
-      df <- data.frame(df, row.names = colnames(vals$counts))
-      DT::datatable(df, filter = "top", options = list(scrollX = TRUE))
-    }
+    DT::datatable(processedColData(), filter = "top", options = list(scrollX = TRUE))
   }, server = TRUE)
   deC2G2Table_proxy <- DT::dataTableProxy("deC2G2Table")
   
@@ -7536,6 +7519,7 @@ shinyServer(function(input, output, session) {
     #                  res[, 1], "</a>"))
     tableToShow <- res
     output$enrDataTable <- DT::renderDataTable({
+      req(tableToShow)
       DT::datatable({
         tableToShow
       },
