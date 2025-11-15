@@ -42,6 +42,12 @@ runScDblFinder <- function(inSCE,
     seed = 12345,
     BPPARAM = BiocParallel::SerialParam(RNGseed = seed)
 ) {
+  # Check for required package
+  if (!requireNamespace("scDblFinder", quietly = TRUE)) {
+    stop("Package 'scDblFinder' is required for this function but is not installed.\n",
+         "Please install it with: BiocManager::install('scDblFinder')",
+         call. = FALSE)
+  }
   tempSCE <- inSCE
   #assayNames(inSCE)[which(useAssay %in% assayNames(inSCE))] <- "counts"
   #useAssay <- "counts"

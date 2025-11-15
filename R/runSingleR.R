@@ -42,6 +42,17 @@ runSingleR <- function(inSCE,
                        level = "fine",
                        featureType = c("symbol", "ensembl"),
                        labelByCluster = NULL) {
+    # Check for required packages
+    if (!requireNamespace("SingleR", quietly = TRUE)) {
+        stop("Package 'SingleR' is required for this function but is not installed.\n",
+             "Please install it with: BiocManager::install('SingleR')",
+             call. = FALSE)
+    }
+    if (!requireNamespace("celldex", quietly = TRUE)) {
+        stop("Package 'celldex' is required for this function but is not installed.\n",
+             "Please install it with: BiocManager::install('celldex')",
+             call. = FALSE)
+    }
     # Input checks
     if (!inherits(inSCE, "SingleCellExperiment")) {
         stop('"inSCE" should be a SingleCellExperiment inherited Object.')

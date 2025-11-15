@@ -30,9 +30,15 @@
 #'                useAssay = "logcounts")
 runGSVA <- function(inSCE, useAssay = "logcounts",
                     resultNamePrefix = NULL, geneSetCollectionName, ...){
+  # Check for required package
+  if (!requireNamespace("GSVA", quietly = TRUE)) {
+    stop("Package 'GSVA' is required for this function but is not installed.\n",
+         "Please install it with: BiocManager::install('GSVA')",
+         call. = FALSE)
+  }
   gsvaRes <- NULL
   gene.Set <- .getGeneSetCollection(inSCE, geneSetCollectionName)
-  
+
   message(date(), " ... Running GSVA")
 
   gsvaData <- as.matrix(expData(inSCE, useAssay))

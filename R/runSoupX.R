@@ -108,6 +108,12 @@ runSoupX <- function(inSCE,
                      roundToInt = FALSE,
                      tol = 0.001,
                      pCut = 0.01) {
+    # Check for required package
+    if (!requireNamespace("SoupX", quietly = TRUE)) {
+        stop("Package 'SoupX' is required for this function but is not installed.\n",
+             "Please install it with: BiocManager::install('SoupX')",
+             call. = FALSE)
+    }
     SingleBGBatchForAllBatch <- FALSE
     adjustMethod <- match.arg(adjustMethod)
     if (!is.null(sample)) {

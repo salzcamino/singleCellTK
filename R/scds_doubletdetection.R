@@ -42,10 +42,16 @@ runCxds <- function(
     verb = FALSE,
     retRes = FALSE,
     estNdbl = FALSE,
-    useAssay = "counts") 
+    useAssay = "counts")
 {
+  # Check for required package
+  if (!requireNamespace("scds", quietly = TRUE)) {
+    stop("Package 'scds' is required for this function but is not installed.\n",
+         "Please install it with: BiocManager::install('scds')",
+         call. = FALSE)
+  }
   message(date(), " ... Running 'cxds'")
-  
+
   ## Getting current arguments
   argsList <- mget(names(formals()),sys.frame(sys.nframe()))
   argsList <- argsList[!names(argsList) %in% c("inSCE")]
@@ -176,8 +182,14 @@ runBcds <- function(
     estNdbl = FALSE,
     useAssay = "counts"
 ) {
+  # Check for required package
+  if (!requireNamespace("scds", quietly = TRUE)) {
+    stop("Package 'scds' is required for this function but is not installed.\n",
+         "Please install it with: BiocManager::install('scds')",
+         call. = FALSE)
+  }
   message(date(), " ... Running 'bcds'")
-  
+
   ## Getting current arguments
   argsList <- mget(names(formals()),sys.frame(sys.nframe()))
   argsList <- argsList[!names(argsList) %in% c("inSCE")]
@@ -300,10 +312,16 @@ runCxdsBcdsHybrid <- function(inSCE,
                               verb = FALSE,
                               estNdbl = FALSE,
                               force = FALSE,
-                              useAssay = "counts") 
+                              useAssay = "counts")
 {
+  # Check for required package
+  if (!requireNamespace("scds", quietly = TRUE)) {
+    stop("Package 'scds' is required for this function but is not installed.\n",
+         "Please install it with: BiocManager::install('scds')",
+         call. = FALSE)
+  }
   message(date(), " ... Running 'cxds_bcds_hybrid'")
-  
+
   ## Getting current arguments
   argsList <- mget(names(formals()),sys.frame(sys.nframe()))
   argsList <- argsList[!names(argsList) %in% c("inSCE")]

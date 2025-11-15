@@ -287,6 +287,11 @@ runDESeq2 <- function(inSCE, useAssay = 'counts', useReducedDim = NULL,
                       minGroup1MeanExp = NULL, maxGroup2MeanExp = NULL,
                       minGroup1ExprPerc = NULL, maxGroup2ExprPerc = NULL,
                       overwrite = FALSE, verbose = TRUE){
+    if (!requireNamespace("DESeq2", quietly = TRUE)) {
+        stop("Package 'DESeq2' is required for this function but is not installed.\n",
+             "Please install it with: BiocManager::install('DESeq2')",
+             call. = FALSE)
+    }
     resultList <- .formatDEAList(inSCE, useAssay, useReducedDim, index1, index2,
                                  class, classGroup1, classGroup2, groupName1,
                                  groupName2, analysisName, covariates,
@@ -372,6 +377,11 @@ runLimmaDE <- function(inSCE, useAssay = 'logcounts', useReducedDim = NULL,
                        maxGroup2MeanExp = NULL, minGroup1ExprPerc = NULL,
                        maxGroup2ExprPerc = NULL, overwrite = FALSE,
                        verbose = TRUE){
+    if (!requireNamespace("limma", quietly = TRUE)) {
+        stop("Package 'limma' is required for this function but is not installed.\n",
+             "Please install it with: BiocManager::install('limma')",
+             call. = FALSE)
+    }
     resultList <- .formatDEAList(inSCE, useAssay, useReducedDim, index1, index2,
                                  class, classGroup1, classGroup2, groupName1,
                                  groupName2, analysisName, covariates,
@@ -551,6 +561,11 @@ runMAST <- function(inSCE, useAssay = 'logcounts', useReducedDim = NULL,
                     minGroup1MeanExp = NULL, maxGroup2MeanExp = NULL,
                     minGroup1ExprPerc = NULL, maxGroup2ExprPerc = NULL,
                     overwrite = FALSE, check_sanity = TRUE, verbose = TRUE){
+    if (!requireNamespace("MAST", quietly = TRUE)) {
+        stop("Package 'MAST' is required for this function but is not installed.\n",
+             "Please install it with: BiocManager::install('MAST')",
+             call. = FALSE)
+    }
     resultList <- .formatDEAList(inSCE, useAssay, useReducedDim, index1, index2,
                                  class, classGroup1, classGroup2, groupName1,
                                  groupName2, analysisName, covariates,

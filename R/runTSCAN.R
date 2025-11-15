@@ -150,6 +150,12 @@ runTSCAN <- function(inSCE,
                      cluster = NULL,
                      starter = NULL,
                      seed = 12345) {
+    # Check for required package
+    if (!requireNamespace("TSCAN", quietly = TRUE)) {
+        stop("Package 'TSCAN' is required for this function but is not installed.\n",
+             "Please install it with: BiocManager::install('TSCAN')",
+             call. = FALSE)
+    }
     if (is.null(cluster)) {
         # DON'T RETURN TO `inSCE`
         # It really overwrites existing cluster labels
