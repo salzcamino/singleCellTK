@@ -360,7 +360,23 @@ runDoubletFinder <- function(inSCE,
                              formationRate = 0.075,
                              nCores = NULL,
                              verbose = FALSE) {
-  
+  # Check for required packages
+  if (!requireNamespace("KernSmooth", quietly = TRUE)) {
+    stop("Package 'KernSmooth' is required for this function but is not installed.\n",
+         "Please install it with: install.packages('KernSmooth')",
+         call. = FALSE)
+  }
+  if (!requireNamespace("ROCR", quietly = TRUE)) {
+    stop("Package 'ROCR' is required for this function but is not installed.\n",
+         "Please install it with: install.packages('ROCR')",
+         call. = FALSE)
+  }
+  if (!requireNamespace("fields", quietly = TRUE)) {
+    stop("Package 'fields' is required for this function but is not installed.\n",
+         "Please install it with: install.packages('fields')",
+         call. = FALSE)
+  }
+
   argsList <- mget(names(formals()), sys.frame(sys.nframe()))
   argsList <- argsList[!names(argsList) %in% c("inSCE")]
   argsList$packageVersion <- "2.0.2"
