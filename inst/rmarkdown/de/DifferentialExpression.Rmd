@@ -71,9 +71,17 @@ datatable(resultTable, options = list(pageLength = 10, scollX = 400))
 
 ## Heatmap
 
-The following heatmap will be divided by the conditions and the regulation. A gene will be determined as up-regulated in condition **`r cond1`** if its log2FC value was greater than 0.25 and FDR is less than 0.05, and down-regulated in condition **`r cond1`** if the log2FC value is less than -0.25. The gene regulation and condition setting will be annotated by default. In addition, if the condition setting was achieved by using a categorical annotation in the object, the annotation used will also be labeled to the column level of the heatmap. 
+The following heatmap will be divided by the conditions and the regulation. A gene will be determined as up-regulated in condition **`r cond1`** if its log2FC value was greater than 0.25 and FDR is less than 0.05, and down-regulated in condition **`r cond1`** if the log2FC value is less than -0.25. The gene regulation and condition setting will be annotated by default. In addition, if the condition setting was achieved by using a categorical annotation in the object, the annotation used will also be labeled to the column level of the heatmap.
 
-```{r "DE-Vis-heatmap", results="asis", fig.align="center", warning=FALSE, message=FALSE, fig.width=9, fig.height=10}
+```{r "DE-Vis-heatmap-calc", include=FALSE}
+# Calculate dynamic height based on number of DEGs
+degTable <- getDEGTopTable(sce, useResult = study, log2fcThreshold = 0.25, fdrThreshold = 0.05)
+numDEGs <- nrow(degTable)
+# Set minimum height of 8, with 0.15 inches per DEG, max 30
+degHeatmapHeight <- max(8, min(numDEGs * 0.15, 30))
+```
+
+```{r "DE-Vis-heatmap", results="asis", fig.align="center", warning=FALSE, message=FALSE, fig.width=12, fig.height=degHeatmapHeight}
 plotDEGHeatmap(sce, study, rowLabel = featureDisplay)
 ```
 

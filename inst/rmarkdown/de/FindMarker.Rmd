@@ -107,14 +107,22 @@ for (i in uniqClusters) {
 
 ## Heatmap
 
-In the marker heatmap, each column stands for a cell in the given SingleCellExperiment object. The cell level color bar annotates the cluster assignment. Each row is a marker gene, and the gene level color bar assigns the cluster correspondence. The cell cluster is ordered by the cluster population size.  
+In the marker heatmap, each column stands for a cell in the given SingleCellExperiment object. The cell level color bar annotates the cluster assignment. Each row is a marker gene, and the gene level color bar assigns the cluster correspondence. The cell cluster is ordered by the cluster population size.
 
-It happens sometimes that a gene is identified as the marker for more than one cluster. In this scenario, we finally assign it to the cluster where it has a higher "logFC" value when plotting.  
+It happens sometimes that a gene is identified as the marker for more than one cluster. In this scenario, we finally assign it to the cluster where it has a higher "logFC" value when plotting.
 
-```{r FM-heatmap, message=FALSE, warning=FALSE, out.width = '100%'}
-plotFindMarkerHeatmap(sce, 
-                  log2fcThreshold = 0.5, 
-                  minClustExprPerc = 0.7, 
-                  maxCtrlExprPerc = 0.4, 
+```{r FM-heatmap-calc, include=FALSE}
+# Calculate dynamic height based on number of markers
+# Estimate: up to 10 markers per cluster
+estimatedMarkers <- min(nCluster * 10, nrow(fmTable))
+# Set minimum height of 8, with 0.2 inches per marker gene
+heatmapHeight <- max(8, min(estimatedMarkers * 0.2, 30))
+```
+
+```{r FM-heatmap, message=FALSE, warning=FALSE, fig.width=12, fig.height=heatmapHeight}
+plotFindMarkerHeatmap(sce,
+                  log2fcThreshold = 0.5,
+                  minClustExprPerc = 0.7,
+                  maxCtrlExprPerc = 0.4,
                   minMeanExpr = 1)
 ```
