@@ -67,7 +67,7 @@
 plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
                           nrow = 6, ncol = 6, defaultTheme = TRUE,
                           isLogged = TRUE, check_sanity = TRUE){
-  #TODO: DO we split the up/down regulation too?
+  # NOTE: Future enhancement could split plots by up/down regulation direction
   # Check
   .checkDiffExpResultExists(inSCE, useResult, labelBy)
   # Extract
@@ -119,11 +119,18 @@ plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
   sca <- suppressMessages(MAST::FromMatrix(expres, cdat,
                                            check_sanity = check_sanity))
   if(threshP){
-    #TODO: if nrow*ncol < `min_per_bin`` below, there would be an error.
-    invisible(utils::capture.output(thres <-
-                                      MAST::thresholdSCRNACountMatrix(expres, nbins = 20,
-                                                                      min_per_bin = 30)))
-    SummarizedExperiment::assay(sca) <- thres$counts_threshold
+    # Validate that we have enough genes for thresholding
+    min_per_bin <- 30
+    n_genes <- nrow(expres)
+    if (n_genes < min_per_bin) {
+      warning("Number of genes (", n_genes, ") is less than min_per_bin (",
+              min_per_bin, "). Skipping expression thresholding.")
+    } else {
+      invisible(utils::capture.output(thres <-
+                                        MAST::thresholdSCRNACountMatrix(expres, nbins = 20,
+                                                                        min_per_bin = min_per_bin)))
+      SummarizedExperiment::assay(sca) <- thres$counts_threshold
+    }
   }
   flatDat <- methods::as(sca, "data.table")
   flatDat$primerid <- factor(flatDat$primerid, levels = replGeneName)
@@ -178,7 +185,7 @@ plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
 plotDEGRegression <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
                               nrow = 6, ncol = 6, defaultTheme = TRUE,
                               isLogged = TRUE, check_sanity = TRUE){
-  #TODO: DO we split the up/down regulation too?
+  # NOTE: Future enhancement could split plots by up/down regulation direction
   # Check
   .checkDiffExpResultExists(inSCE, useResult, labelBy)
   # Extract
@@ -233,12 +240,19 @@ plotDEGRegression <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
     stop("Standardized cellular detection rate not various, unable to plot.")
   }
   if(threshP){
-    #TODO: if nrow*ncol < `min_per_bin`` below, there would be an error.
-    invisible(utils::capture.output(thres <-
-                                      MAST::thresholdSCRNACountMatrix(expres,
-                                                                      nbins = 20,
-                                                                      min_per_bin = 30)))
-    SummarizedExperiment::assay(sca) <- thres$counts_threshold
+    # Validate that we have enough genes for thresholding
+    min_per_bin <- 30
+    n_genes <- nrow(expres)
+    if (n_genes < min_per_bin) {
+      warning("Number of genes (", n_genes, ") is less than min_per_bin (",
+              min_per_bin, "). Skipping expression thresholding.")
+    } else {
+      invisible(utils::capture.output(thres <-
+                                        MAST::thresholdSCRNACountMatrix(expres,
+                                                                        nbins = 20,
+                                                                        min_per_bin = min_per_bin)))
+      SummarizedExperiment::assay(sca) <- thres$counts_threshold
+    }
   }
   flatDat <- methods::as(sca, "data.table")
   flatDat$primerid <- factor(flatDat$primerid, levels = replGeneName)
