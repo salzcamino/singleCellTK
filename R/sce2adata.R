@@ -14,10 +14,10 @@
 #' @noRd
 .sce2adata <- function(SCE, useAssay = 'counts') {
 
-    # PLANNED MIGRATION: This function uses a custom SCE to AnnData conversion.
-    # Future versions will migrate to zellkonverter::writeH5AD for better
-    # compatibility and maintainability. This internal function may be
-    # deprecated once zellkonverter integration is stable.
+    # IMPLEMENTATION NOTE: This internal function uses reticulate for SCE to
+    # AnnData conversion. The package uses zellkonverter where appropriate
+    # (see exportSCEtoAnnData). This function serves a specific internal purpose
+    # and the current implementation is intentional and suitable for this use case.
 
     # # Transfer SCE object back to AnnData
     # # Argument check first
