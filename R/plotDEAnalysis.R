@@ -46,6 +46,9 @@
 #' where to search for the labeling text. Default \code{NULL}.
 #' @param nrow Integer. Number of rows in the plot grid. Default \code{6}.
 #' @param ncol Integer. Number of columns in the plot grid. Default \code{6}.
+#' @param regulation Character. Filter genes by regulation direction. Options:
+#' \code{"all"} (default, all significant genes), \code{"up"} (positive Log2_FC
+#' only), or \code{"down"} (negative Log2_FC only). Default \code{"all"}.
 #' @param defaultTheme Logical scalar. Whether to use default SCTK theme in
 #' ggplot. Default \code{TRUE}.
 #' @param isLogged Logical scalar. Whether the assay used for the analysis is
@@ -64,10 +67,13 @@
 #'                    groupName1 = "w.alpha", groupName2 = "w.beta",
 #'                    analysisName = "w.aVSb")
 #' plotDEGViolin(sce.w, "w.aVSb")
+#' # Plot only upregulated genes
+#' plotDEGViolin(sce.w, "w.aVSb", regulation = "up")
 plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
-                          nrow = 6, ncol = 6, defaultTheme = TRUE,
-                          isLogged = TRUE, check_sanity = TRUE){
-  # NOTE: Future enhancement could split plots by up/down regulation direction
+                          nrow = 6, ncol = 6, regulation = c("all", "up", "down"),
+                          defaultTheme = TRUE, isLogged = TRUE, check_sanity = TRUE){
+  # Validate and filter by regulation direction
+  regulation <- match.arg(regulation)
   # Check
   .checkDiffExpResultExists(inSCE, useResult, labelBy)
   # Extract
@@ -75,6 +81,19 @@ plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
   deg <- result$result
   useAssay <- result$useAssay
   useReducedDim <- result$useReducedDim
+
+  # Filter by regulation direction
+  if (regulation == "up") {
+    deg <- deg[deg$Log2_FC > 0, , drop = FALSE]
+  } else if (regulation == "down") {
+    deg <- deg[deg$Log2_FC < 0, , drop = FALSE]
+  }
+
+  # Check if we have genes after filtering
+  if (nrow(deg) == 0) {
+    stop("No ", regulation, "-regulated genes found in '", useResult, "'.")
+  }
+
   deg <- deg[order(deg$FDR),]
   geneToPlot <- deg[seq_len(min(nrow(deg), nrow*ncol)), "Gene"]
   groupName1 <- result$groupNames[1]
@@ -136,6 +155,12 @@ plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
   flatDat$primerid <- factor(flatDat$primerid, levels = replGeneName)
   names(flatDat)[5] <- useMat
   # Plot
+  plot_title <- if (regulation == "all") {
+    paste0("Violin Plot for ", useResult)
+  } else {
+    paste0("Violin Plot for ", useResult, " (", regulation, "-regulated)")
+  }
+
   violinplot <- ggplot2::ggplot(flatDat,
                                 ggplot2::aes_string(x = 'condition',
                                                     y = useMat,
@@ -144,7 +169,7 @@ plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
     ggplot2::facet_wrap(~primerid, scale = "free_y",
                         ncol = ncol) +
     ggplot2::geom_violin() +
-    ggplot2::ggtitle(paste0("Violin Plot for ", useResult))
+    ggplot2::ggtitle(plot_title)
   if(isTRUE(defaultTheme)){
     violinplot <- .ggSCTKTheme(violinplot)
   }
@@ -164,6 +189,9 @@ plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
 #' where to search for the labeling text. Default \code{NULL}.
 #' @param nrow Integer. Number of rows in the plot grid. Default \code{6}.
 #' @param ncol Integer. Number of columns in the plot grid. Default \code{6}.
+#' @param regulation Character. Filter genes by regulation direction. Options:
+#' \code{"all"} (default, all significant genes), \code{"up"} (positive Log2_FC
+#' only), or \code{"down"} (negative Log2_FC only). Default \code{"all"}.
 #' @param defaultTheme Logical scalar. Whether to use default SCTK theme in
 #' ggplot. Default \code{TRUE}.
 #' @param isLogged Logical scalar. Whether the assay used for the analysis is
@@ -182,10 +210,13 @@ plotDEGViolin <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
 #'                    groupName1 = "w.alpha", groupName2 = "w.beta",
 #'                    analysisName = "w.aVSb")
 #' plotDEGRegression(sce.w, "w.aVSb")
+#' # Plot only downregulated genes
+#' plotDEGRegression(sce.w, "w.aVSb", regulation = "down")
 plotDEGRegression <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
-                              nrow = 6, ncol = 6, defaultTheme = TRUE,
-                              isLogged = TRUE, check_sanity = TRUE){
-  # NOTE: Future enhancement could split plots by up/down regulation direction
+                              nrow = 6, ncol = 6, regulation = c("all", "up", "down"),
+                              defaultTheme = TRUE, isLogged = TRUE, check_sanity = TRUE){
+  # Validate and filter by regulation direction
+  regulation <- match.arg(regulation)
   # Check
   .checkDiffExpResultExists(inSCE, useResult, labelBy)
   # Extract
@@ -193,6 +224,19 @@ plotDEGRegression <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
   deg <- result$result
   useReducedDim <- result$useReducedDim
   useAssay <- result$useAssay
+
+  # Filter by regulation direction
+  if (regulation == "up") {
+    deg <- deg[deg$Log2_FC > 0, , drop = FALSE]
+  } else if (regulation == "down") {
+    deg <- deg[deg$Log2_FC < 0, , drop = FALSE]
+  }
+
+  # Check if we have genes after filtering
+  if (nrow(deg) == 0) {
+    stop("No ", regulation, "-regulated genes found in '", useResult, "'.")
+  }
+
   geneToPlot <- deg[seq_len(min(nrow(deg), nrow*ncol)), "Gene"]
   groupName1 <- result$groupNames[1]
   ix1 <- result$select$ix1
@@ -271,6 +315,12 @@ plotDEGRegression <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
     }
   }
   # Plot
+  plot_title <- if (regulation == "all") {
+    paste0("Linear Model Plot for ", useResult)
+  } else {
+    paste0("Linear Model Plot for ", useResult, " (", regulation, "-regulated)")
+  }
+
   ggbase <- ggplot2::ggplot(resData, ggplot2::aes_string(
     x = 'condition',
     y = useMat,
@@ -283,8 +333,7 @@ plotDEGRegression <- function(inSCE, useResult, threshP = FALSE, labelBy = NULL,
     ggplot2::geom_line(ggplot2::aes_string(y = "lmPred"),
                        lty = 1) +
     ggplot2::xlab("Standardized Cellular Detection Rate") +
-    ggplot2::ggtitle(paste0("Linear Model Plot for ",
-                            useResult))
+    ggplot2::ggtitle(plot_title)
   if(isTRUE(defaultTheme)){
     regressionplot <- .ggSCTKTheme(regressionplot)
   }
