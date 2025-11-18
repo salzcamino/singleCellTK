@@ -278,17 +278,15 @@ plotSCEHeatmap <- function(inSCE, useAssay = 'logcounts', useReducedDim = NULL,
   
   # STAGE 3: Aggregate As needed ####
   if (!is.null(aggregateCol)) {
-    # TODO: whether to also aggregate numeric variable that users want
-    # Might need to use "coldata.merge" in aggregate function
+    # NOTE: Future enhancement could support aggregating numeric variables
+    # via coldata.merge parameter in aggregate function
     colIDS <- colData(SCE)[, aggregateCol]
     origRowData <- rowData(SCE)
     SCE <- aggregateAcrossCells(SCE, ids = colIDS,
                                 use.assay.type = useData,
                                 store.number = NULL, statistics = "mean")
-    # TODO: `aggregateAcrossCells` produce duplicated variables in colData
-    # and unwanted "ncell" variable even if I set `store.number = NULL`.
-   #colData(SCE) <- colData(SCE)[,c(aggregateCol),drop=FALSE] ##change
-    
+    # NOTE: aggregateAcrossCells can produce duplicated variables in colData.
+    # Workaround: clean up colData to keep only aggregation columns
     temp_df<-as.data.frame(colData(SCE)[,c(aggregateCol),drop=FALSE]) %>% 
       unite("new_colnames",dplyr::everything(),sep = "_",remove = FALSE) %>% 
       remove_rownames() %>% 

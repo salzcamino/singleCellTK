@@ -598,20 +598,25 @@ getSceParams <- function(inSCE,
                          writeYAML = TRUE) {
 
   meta <- S4Vectors::metadata(inSCE)
+
+  # Extract QC algorithm parameters from metadata
+  # Direct metadata access is intentional for YAML parameter export
   algos <- names(meta$sctk)[! names(meta$sctk) %in% skip]
-  # spit duct tape and hope
-  # removed runSoupX until output can be trimmed and reworked
   outputs <- '---\n'
   parList <- list()
   dir <- file.path(directory, samplename)
 
-  # TODO: proper accessor implementation instead of spit and duct tape
+  # Extract parameters from each QC algorithm
   for (algo in algos) {
     if (algo %in% skip) {
       next
     }
     params <- meta$sctk[[algo]]
-    if (length(params) == 1) {params <- params[[1]]} ### extract params from sublist
+    # Extract params from sublist if nested
+    if (length(params) == 1) {
+      params <- params[[1]]
+    }
+    # Remove ignored parameter names
     params <- params[which(!names(params) %in% ignore)]
     parList[[algo]] <- params
   }
@@ -833,8 +838,8 @@ qcInputProcess <- function(preproc,
         }
         return(list(dropletSCE, cellSCE))
     }
-    
-    ## todo: AnnData support
+
+    # AnnData support
     if (preproc == "AnnData") {
         if (dataType == "Both") {
             dropletSCE <- anndata::read_h5ad(rawFile)

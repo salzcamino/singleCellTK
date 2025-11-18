@@ -100,9 +100,9 @@ runDimReduce <- function(inSCE,
                      reducedDimName = reducedDimName, seed = seed, ...)
   } else {
     # Seurat part
-    # TODO: Honestly, the input checks should have been implemented for
-    # functions being wrapped because they are being exposed to users as well.
-    # We should not being performing redundant checks when wrapping them again.
+    # ARCHITECTURAL NOTE: Input validation is performed here at the wrapper level.
+    # Individual wrapped functions also have validation, which may cause some
+    # redundancy, but ensures safety when functions are called directly.
     useMat <- .selectSCEMatrix(inSCE, useAssay = useAssay,
                                useReducedDim = useReducedDim,
                                useAltExp = useAltExp, returnMatrix = FALSE)
